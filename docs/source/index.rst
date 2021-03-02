@@ -6,7 +6,8 @@ RAPOC: Rosseland And Planck Opacity Converter
    :width: 600
    :align: center
 
-The `RAPOC` code is the product of a collaboration between Sapienza Università di Roma, Università degli Studi di Palermo and INAF - Osservatorio Astronomico di Palermo.
+Developed by Lorenzo V. Mugnai and Darius Modirrousta-Galian, the RAPOC code is the product of a collaboration between Sapienza Università di Roma,
+Università degli Studi di Palermo and INAF - Osservatorio Astronomico di Palermo.
 
 .. image:: _static/sapienza.png
    :width: 180
