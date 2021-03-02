@@ -1,6 +1,6 @@
 ![PyPI](https://img.shields.io/pypi/v/rapoc)
-[![Documentation Status](https://readthedocs.org/projects/rapoc-public/badge/?version=latest)](https://rapoc-public.readthedocs.io/en/latest/?badge=latest)
-![GitHub](https://img.shields.io/github/license/ExObsSim/rapoc-public)
+[![Documentation Status](https://readthedocs.org/projects/Rapoc-public/badge/?version=latest)](https://Rapoc-public.readthedocs.io/en/latest/?badge=latest)
+![GitHub](https://img.shields.io/github/license/ExObsSim/Rapoc-public)
 
 # RAPOC: Rosseland And Planck Opacity Converter
 
