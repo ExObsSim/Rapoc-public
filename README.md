@@ -1,4 +1,4 @@
-![PyPI](https://img.shields.io/pypi/v/rapoc)
+[![PyPI version](https://badge.fury.io/py/rapoc.svg)](https://badge.fury.io/py/rapoc)
 [![Documentation Status](https://readthedocs.org/projects/rapoc-public/badge/?version=latest)](https://rapoc-public.readthedocs.io/en/latest/?badge=latest)
 ![GitHub](https://img.shields.io/github/license/ExObsSim/Rapoc-public)
 
