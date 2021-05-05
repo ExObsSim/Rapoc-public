@@ -41,9 +41,9 @@ class FileLoader:
         pressure_grid = self._read_pressure_grid(opened_file)
         temperature_grid = self._read_temperature_grid(opened_file)
         wavenumber_grid = self._read_wavenumber_grid(opened_file)
-        ktable = self._read_ktable(opened_file)
+        opacities = self._read_opacities(opened_file)
         self._close(opened_file)
-        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable
+        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacities, None
 
     @abstractmethod
     def _open(self):
@@ -74,5 +74,5 @@ class FileLoader:
         raise NotImplementedError
 
     @abstractmethod
-    def _read_ktable(self, opened_file):
+    def _read_opacities(self, opened_file):
         raise NotImplementedError

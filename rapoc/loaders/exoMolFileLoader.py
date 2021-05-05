@@ -54,7 +54,7 @@ class ExoMolFileLoader(FileLoader):
     def _read_wavenumber_grid(self, opened_file):
         return opened_file['bin_edges'][:] / u.cm
 
-    def _read_ktable(self, opened_file):
+    def _read_opacities(self, opened_file):
         xsec_grid_units = opened_file['xsecarr'].attrs['units']
         xsec_grid_raw = opened_file['xsecarr'][:]
 

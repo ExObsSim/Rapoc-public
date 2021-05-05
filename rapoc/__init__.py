@@ -23,4 +23,4 @@ __all__ = [
 ]
 
 from . import models
-from .models import Rosseland, Planck
+from .models import Rosseland, Planck, Rayleigh

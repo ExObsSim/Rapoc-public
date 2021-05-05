@@ -12,7 +12,7 @@ class DictLoader:
         pressure grid, :math:`Pa`,"p, P, pressure, pressure_grid"
         temperature grid, :math:`K`,"t, T, temperature, temperature_grid"
         wavenumber grid, :math:`1/cm`,"wn, wavenumber, wavenumbers, wavenumbers_grid, wavenumber_grid"
-        ktable, :math:`m^2/kg`, "ktable"
+        opacities, :math:`m^2/kg`, "opacities"
 
     If the input data has no units attached, the defaults units are assume.
     If they have units, a simple conversion is performed by the code to match the default values.
@@ -33,8 +33,8 @@ class DictLoader:
     >>>                                   1.00000000e+04, 1.00000000e+05, 1.00000000e+06, 1.00000000e+07]),
     >>>              'temperature': np.array([500, 1000, 1500, 2000, 3000]),
     >>>              'wavenumber': np.array([100000, 1000])}
-    >>> ktab = np.ones((data_dict['pressure'].size,data_dict['temperature'].size,data_dict['wavenumber'].size,))
-    >>> data_dict['ktable'] = ktab
+    >>> opac = np.ones((data_dict['pressure'].size,data_dict['temperature'].size,data_dict['wavenumber'].size,))
+    >>> data_dict['opacities'] = opac
 
     Let's build the Planck method using the dictionary as input
 
@@ -128,12 +128,12 @@ class DictLoader:
             raise KeyError('Wavenumber grid not found')
 
         try:
-            ktable = self.input_data['ktable']
-            if isinstance(ktable, u.Quantity):
-                ktable = ktable.to(u.m ** 2 / u.kg)
+            opacities = self.input_data['opacities']
+            if isinstance(opacities, u.Quantity):
+                opacities = opacities.to(u.m ** 2 / u.kg)
             else:
-                ktable *= u.m ** 2 / u.kg
+                opacities *= u.m ** 2 / u.kg
         except KeyError:
-            raise KeyError('ktable not found')
+            raise KeyError('opacities not found')
 
-        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable
+        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacities, False

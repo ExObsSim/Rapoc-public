@@ -5,7 +5,8 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
 
-from rapoc.models.validation import validate_inputs, validate_output
+import rapoc.models
+from rapoc.models.utils.validation import validate_inputs, validate_output
 
 
 class Model:
@@ -32,7 +33,7 @@ class Model:
         data temperature grid in `si` units
     wavenumber_grid: astropy.units.Quantity
         data wavenumber grid
-    ktable: astropy.units.Quantity
+    opacities: astropy.units.Quantity
         data opacities grid in `si` units
     frequency_grid: astropy.units.Quantity
         data frequency grid
@@ -66,21 +67,21 @@ class Model:
 
         self.input_data = input_data
         self.model_name = 'model'
-        self.band = None
-        self._map = None
         self.selected_grid = None
         loaded = self._loader_selector()
-        self.mol, self.mol_mass, self.pressure_grid, self.temperature_grid, self.wavenumber_grid, self.ktable = loaded.read_content()
+        self.mol, self.mol_mass, self.pressure_grid, self.temperature_grid, self.wavenumber_grid, self.opacities, self.exceptions = loaded.read_content()
         self.frequency_grid = (self.wavenumber_grid * const.c).si
         self.wavelength_grid = 1 / self.wavenumber_grid.to(1 / u.um)
+        self._map = None
+        self.band = None
 
-    def opacity_model(self, ktable, nu, T_input):
+    def opacity_model(self, opacities, nu, T_input):
         """
         Computes the mean opacity in the investigated range.
 
         Parameters
         ----------
-        ktable: np.array
+        opacities: np.array
             opacity array. Has the same dimension of the frequency grid `nu`
         nu: np.array
             frequency grid
@@ -94,16 +95,12 @@ class Model:
         """
         raise NotImplementedError
 
-    def extract_ktable(self, P_input, T_input, band, units='si'):
+    def extract_opacities(self, T_input, band, P_input=None, units='si'):
         """
-        Returns the input_data ktable for given pressure, temperature and band.
+        Returns the input_data opacities for given pressure, temperature and band.
 
         Parameters
         ----------
-        P_input: float or np.array
-            pressure to use for the estimation.
-            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
-            Can either be a single value or an array.
         T_input: float or np.array
             temperature to use for the estimation.
             This should be a `astropy.units.Quantity` with specified units, if not `K` are assumed as units.
@@ -112,6 +109,11 @@ class Model:
             this should be a tuple of `astropy.units.Quantity` indicating the edges of the band to use
             in the estimation.
             The units used reveal the intention to work in wavelengths, wavenumbers or frequencies.
+        P_input: float or np.array
+            pressure to use for the estimation.
+            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
+            Can either be a single value or an array. It can be None in the case of data not depending on pressure,
+            as Rayleigh scattering. Default is None.
         units: str or astropy.units, optional
             indicates the output units system.
             If `si` the opacity is returned as :math:`m^2/kg`, if `cgs` is returned as :math:`cm^2/g`.
@@ -127,7 +129,9 @@ class Model:
             list of wavenumber (or wavelength or frequency) index relative to the investigated band
 
         """
-        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid)
+        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid, self.exceptions)
+        if self.exceptions in ['rayleigh']:
+            P_input = np.array([1])*u.Pa
         idw = self._wl_range_parser(band)
         _extract = np.zeros([P_input.size, T_input.size, idw.size]) * u.m ** 2 / u.kg
 
@@ -135,20 +139,16 @@ class Model:
             for j, t in enumerate(T_input):
                 idp = np.argmin(abs(self.pressure_grid - p.to(u.Pa)))
                 idt = np.argmin(abs(self.temperature_grid - t.to(u.K)))
-                _extract[i, j] = self.ktable[idp][idt][idw]
+                _extract[i, j] = self.opacities[idp][idt][idw]
         return validate_output(_extract, units), idw
 
-    def estimate(self, P_input, T_input, band, mode='closest', units='si'):
+    def estimate(self, T_input, band, P_input=None, mode='closest', units='si'):
         """
         It estimates the model opacity in the indicated pressure and temperature grid for the indicated band,
         using the :func:`~rapoc.models.model.Model.opacity_model`.
 
         Parameters
         ----------
-        P_input: float or np.array
-            pressure to use for the estimation.
-            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
-            Can either be a single value or an array.
         T_input: float or np.array
             temperature to use for the estimation.
             This should be a `astropy.units.Quantity` with specified units, if not `K` are assumed as units.
@@ -157,10 +157,15 @@ class Model:
             this should be a tuple of `astropy.units.Quantity` indicating the edges of the band to use
             in the estimation.
             The units used reveal the intention to work in wavelengths, wavenumbers or frequencies.
+        P_input: float or np.array
+            pressure to use for the estimation.
+            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
+            Can either be a single value or an array. It can be None in the case of data not depending on pressure,
+            as Rayleigh scattering. Default is None.
         mode: str, optional
             indicates the estimation mode desired. If `closest` the output will be the opacity computed from the data at
             the nearest pressure on the data grid to the indicated one, and at the nearest temperature on the data grid
-            to the indicated one. If {'linear', 'cubic'} it's used the :func:`scipy.interpolate.griddata`
+            to the indicated one. If {'linear', 'loglinear'} it's used the :func:`scipy.interpolate.griddata`
             with the indicated `kind`. 
             To interpolate a map of opacities over the data grid is computed first using :func:`~rapoc.models.model.Model.map`. 
             Mode is `closest` by default.
@@ -185,56 +190,67 @@ class Model:
         AttributeError:
             if the band cannot be interpreted as wavelength, wavenumber or frequency
         """
+        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid, self.exceptions)
+        if self.exceptions is None:
+            if mode == 'closest':
+                _estimate = np.zeros([P_input.size, T_input.size]) * u.m ** 2 / u.kg
+                idw = self._wl_range_parser(band)
+                frequency = self.frequency_grid[idw]
+                for i, p in enumerate(P_input):
+                    for j, t in enumerate(T_input):
+                        idp = np.argmin(abs(self.pressure_grid - p.to(u.Pa)))
+                        idt = np.argmin(abs(self.temperature_grid - t.to(u.K)))
+                        _estimate[i, j] = self.opacity_model(self.opacities[idp][idt][idw], frequency,
+                                                             self.temperature_grid[idt])
 
-        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid)
+            elif mode in ['linear', 'loglinear']:
+                from scipy import interpolate
+                _map = self.map(band).to(u.m ** 2 / u.kg).value
 
-        if mode == 'closest':
-            _estimate = np.zeros([P_input.size, T_input.size]) * u.m ** 2 / u.kg
+                points, map_values = [], []
+                for i in range(self.pressure_grid.size):
+                    for j in range(self.temperature_grid.size):
+                        if mode == 'linear':
+                            points.append((self.pressure_grid[i].value, self.temperature_grid[j].value))
+                        else:
+                            points.append((np.log10(self.pressure_grid[i].value), self.temperature_grid[j].value))
+                        map_values.append(_map[i, j])
+                _estimate = np.zeros([P_input.size, T_input.size]) * u.m ** 2 / u.kg
+                for i, p in enumerate(P_input.value):
+                    for j, t in enumerate(T_input.value):
+                        if mode == 'linear':
+                            _estimate[i, j] = interpolate.griddata(points, np.array(map_values), (p, t),
+                                                               method=mode, rescale=True) * u.m ** 2 / u.kg
+                        else:
+                            _estimate[i, j] = interpolate.griddata(points, np.array(map_values), (np.log10(p), t),
+                                                                   method='linear', rescale=True) * u.m ** 2 / u.kg
+            else:
+                raise NotImplementedError('The indicated mode is not supported.')
+
+            return validate_output(_estimate, units)
+
+        # handling rayleigh
+        elif self.exceptions in ['rayleigh']:
+            _estimate = np.zeros([1, T_input.size]) * u.m ** 2 / u.kg
             idw = self._wl_range_parser(band)
             frequency = self.frequency_grid[idw]
-            for i, p in enumerate(P_input):
-                for j, t in enumerate(T_input):
-                    idp = np.argmin(abs(self.pressure_grid - p.to(u.Pa)))
-                    idt = np.argmin(abs(self.temperature_grid - t.to(u.K)))
-                    _estimate[i, j] = self.opacity_model(self.ktable[idp][idt][idw], frequency,
-                                                         self.temperature_grid[idt])
+            for j, t in enumerate(T_input):
+                _estimate[0, j] = self.opacity_model(self.opacities[0][0][idw], frequency, t)
+            return validate_output(_estimate, units)
 
-        elif mode in ['linear', 'cubic']:
-            from scipy import interpolate
-            _map = self.map(band).to(u.m ** 2 / u.kg).value
-
-            points, map_values = [], []
-            for i in range(self.pressure_grid.size):
-                for j in range(self.temperature_grid.size):
-                    points.append((self.pressure_grid[i].value, self.temperature_grid[j].value))
-                    map_values.append(_map[i, j])
-            _estimate = np.zeros([P_input.size, T_input.size]) * u.m ** 2 / u.kg
-            for i, p in enumerate(P_input.value):
-                for j, t in enumerate(T_input.value):
-                    _estimate[i, j] = interpolate.griddata(points, np.array(map_values), (p, t),
-                                                           method=mode, rescale=True) * u.m ** 2 / u.kg
-        else:
-            raise NotImplementedError('The indicated mode is not supported.')
-
-        return validate_output(_estimate, units)
-
-    def estimate_plot(self, P_input, T_input, band, mode='closest', force_map=False,
+    def estimate_plot(self, T_input, band, P_input=None,  mode='closest', force_map=False,
                       fig=None, ax=None, yscale='log', xscale='linear', grid='wavelength'):
         """
         Produces a plot of the estimates (produced with :func:`~rapoc.models.model.Model.estimate`),
         comparing the raw data with the result.
         If a single estimate is to be plotted, this method produces a plot of raw opacities vs wavelength
-        from the ktable (in grey) and the mean opacity estimated.
+        from the opacities (in grey) and the mean opacity estimated.
         If multiple estimates are be plotted, it produces a 3D plot,  with the surface of mean opacity vs
         temperature and pressure from the data grid (using :func:`~rapoc.models.model.Model.map_plot`) 
         and the interpolated data superimposed.
 
         Parameters
         ----------
-        P_input: float or np.array
-            pressure to use for the estimation.
-            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
-            Can either be a single value or an array.
         T_input: float or np.array
             temperature to use for the estimation.
             This should be a `astropy.units.Quantity` with specified units, if not `K` are assumed as units.
@@ -243,10 +259,15 @@ class Model:
             this should be a tuple of `astropy.units.Quantity` indicating the edges of the band to use
             in the estimation.
             The units used reveal the intention to work in wavelengths, wavenumbers or frequencies.
+        P_input: float or np.array
+            pressure to use for the estimation.
+            This should be a `astropy.units.Quantity` with specified units, if not `Pa` are assumed as units.
+            Can either be a single value or an array. It can be None in the case of data not depending on pressure,
+            as Rayleigh scattering. Default is None.
         mode: str, optional
             indicates the estimation mode desired. If `closest` the output will be the opacity computed from the data at
             the nearest pressure on the data grid to the indicated one, and at the nearest temperature on the data grid
-            to the indicated one. If {'linear', 'cubic'} it's used the :func:`scipy.interpolate.griddata`
+            to the indicated one. If {'linear', 'loglinear'} it's used the :func:`scipy.interpolate.griddata`
             with the indicated `kind`.
             Mode is `closest` by default.
         force_map: bool
@@ -274,8 +295,8 @@ class Model:
         KeyError:
             if the indicated grid is not supported
         """
-        r = self.estimate(P_input, T_input, band, mode=mode)
-        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid)
+        r = self.estimate(P_input=P_input, T_input=T_input, band=band, mode=mode)
+        P_input, T_input = validate_inputs(P_input, T_input, self.pressure_grid, self.temperature_grid, self.exceptions)
         if r.size == 1 and not force_map:
             idw = self._wl_range_parser(band)
             if grid == 'wavelength':
@@ -290,12 +311,12 @@ class Model:
             if (fig is None) and (ax is None):
                 fig, ax = plt.subplots(1, 1)
                 ax.set_xlabel(r'{} [${}$]'.format(grid, grid_plot.unit))
-                ax.set_ylabel(r'${}$'.format(self.ktable.unit))
+                ax.set_ylabel(r'${}$'.format(self.opacities.unit))
                 ax.set_title(self.model_name)
 
             idp = np.argmin(abs(self.pressure_grid - P_input.to(u.Pa)))
             idt = np.argmin(abs(self.temperature_grid - T_input.to(u.K)))
-            ax.plot(grid_plot, self.ktable[idp][idt][idw], label='ktable', c='grey', alpha=0.2)
+            ax.plot(grid_plot, self.opacities[idp][idt][idw], label='opacities', c='grey', alpha=0.2)
             ax.axhline(r.value, lw=1, label=self.model_name)
 
             ax.set_yscale(yscale)
@@ -341,7 +362,7 @@ class Model:
             _map = np.zeros([self.pressure_grid.size, self.temperature_grid.size]) * u.m ** 2 / u.kg
             for i in range(self.pressure_grid.size):
                 for j in range(self.temperature_grid.size):
-                    _map[i, j] = self.opacity_model(self.ktable[i][j][idw], frequency, self.temperature_grid[j])
+                    _map[i, j] = self.opacity_model(self.opacities[i][j][idw], frequency, self.temperature_grid[j])
             _map = validate_output(_map)
             self._map = _map
         return self._map
@@ -377,7 +398,7 @@ class Model:
             ax = fig.add_subplot(111, projection='3d')
             ax.set_ylabel('log(Pressure [Pa])')
             ax.set_xlabel('Temperature [K]')
-            ax.set_zlabel(r'${}$'.format(self.ktable.unit))
+            ax.set_zlabel(r'${}$'.format(self.opacities.unit))
         ax.set_title(self.model_name)
         if not hasattr(ax, 'plot_surface'):
             raise AttributeError('input axes should have 3D projection. '
@@ -397,6 +418,8 @@ class Model:
         elif isinstance(self.input_data, dict):
             from rapoc.loaders import DictLoader
             return DictLoader(input_data=self.input_data)
+        elif isinstance(self.input_data, rapoc.models.Rayleigh):
+            return self.input_data
         else:
             raise IOError('Data format not supported')
 
@@ -417,6 +440,6 @@ class Model:
 
         if investigated_range[0] > investigated_range[1]:
             investigated_range = reversed(investigated_range)
-        idx = np.where(np.logical_and(lookup < investigated_range[1], lookup > investigated_range[0]))[0]
+        idx = np.where(np.logical_and(lookup <= investigated_range[1], lookup >= investigated_range[0]))[0]
         self.selected_grid = lookup[idx]
         return idx

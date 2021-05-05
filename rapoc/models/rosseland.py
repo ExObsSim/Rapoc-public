@@ -44,7 +44,7 @@ class Rosseland(Model):
         data temperature grid in `si` units
     wavenumber_grid: astropy.units.Quantity
         data wavenumber grid
-    ktable: astropy.units.Quantity
+    opacities: astropy.units.Quantity
         data opacities grid in `si` units
     frequency_grid: astropy.units.Quantity
         data frequency grid
@@ -82,7 +82,7 @@ class Rosseland(Model):
         super().__init__(input_data)
         self.model_name = 'Rosseland'
 
-    def opacity_model(self, ktable, nu, T_input):
+    def opacity_model(self, opacities, nu, T_input):
         """
         This function computes the Rosseland Opacity model:
 
@@ -101,7 +101,7 @@ class Rosseland(Model):
 
         Parameters
         ----------
-        ktable: np.array
+        opacities: np.array
             opacity array. Has the same dimension of the frequency grid `nu`
         nu: np.array
             frequency grid
@@ -113,7 +113,7 @@ class Rosseland(Model):
         float
             mean opacity computed from the model
         """
-        return self._ross(ktable, nu, T_input).si
+        return self._ross(opacities, nu, T_input).si
 
     def _u_nu(self, nu, T):
         first_term = const.h ** 2 * nu ** 4 / const.c ** 2 / const.k_B

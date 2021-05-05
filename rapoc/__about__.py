@@ -30,4 +30,4 @@ __author__ = "Lorenzo V. Mugnai, Darius Modirrousta-Galian"
 __email__ = "lorenzo.mugnai@uniroma1.it"
 
 __license__ = "BSD-3-Clause"
-__copyright__ = "2021 %s" % __author__
+__copyright__ = "2020 %s" % __author__

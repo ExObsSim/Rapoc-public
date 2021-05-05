@@ -9,7 +9,7 @@ from rapoc.loaders import ExoMolFileLoader
 
 class ExoMolLoaderTest(unittest.TestCase):
     loaded = ExoMolFileLoader(filename=exomol_file)
-    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable = loaded.read_content()
+    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable, force_t = loaded.read_content()
 
     def test_mol(self):
         self.assertEqual(self.mol, 'H2O')
@@ -45,7 +45,7 @@ class ExoMolLoaderTest(unittest.TestCase):
 
 # class HitranLoaderTest(unittest.TestCase):
 #     loaded = CiaHitranFileLoader(input_data=hitran_file)
-#     mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable = loaded.read_content()
+#     mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacities = loaded.read_content()
 #
 #     def test_mol(self):
 #         print(self.mol)
@@ -72,6 +72,6 @@ class ExoMolLoaderTest(unittest.TestCase):
 #         self.assertEqual(self.wavenumber_grid.unit, 1 / u.cm)
 #
 #     def test_ktable(self):
-#         print(self.ktable)
-#         print(self.ktable.shape)
-#         self.assertEqual(self.ktable.unit, u.m ** 2 / u.kg)
+#         print(self.opacities)
+#         print(self.opacities.shape)
+#         self.assertEqual(self.opacities.unit, u.m ** 2 / u.kg)

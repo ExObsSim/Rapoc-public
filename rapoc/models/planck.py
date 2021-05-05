@@ -40,7 +40,7 @@ class Planck(Model):
         data temperature grid in `si` units
     wavenumber_grid: astropy.units.Quantity
         data wavenumber grid
-    ktable: astropy.units.Quantity
+    opacities: astropy.units.Quantity
         data opacities grid in `si` units
     frequency_grid: astropy.units.Quantity
         data frequency grid
@@ -74,7 +74,7 @@ class Planck(Model):
         >>>              'temperature': np.array([500, 1000, 1500, 2000, 3000]),
         >>>              'wavenumber': np.array([100000, 1000])}
         >>> ktab = np.ones((data_dict['pressure'].size,data_dict['temperature'].size,data_dict['wavenumber'].size,))
-        >>> data_dict['ktable'] = ktab
+        >>> data_dict['opacities'] = ktab
 
         Let's build the Planck method using an Exomol file as input
 
@@ -87,7 +87,7 @@ class Planck(Model):
         super().__init__(input_data)
         self.model_name = 'Planck'
 
-    def opacity_model(self, ktable, nu, T_input):
+    def opacity_model(self, opacities, nu, T_input):
         """
         This function computes the Planck Opacity model:
 
@@ -104,7 +104,7 @@ class Planck(Model):
 
         Parameters
         ----------
-        ktable: np.array
+        opacities: np.array
             opacity array. Has the same dimension of the frequency grid `nu`
         nu: np.array
             frequency grid
@@ -116,7 +116,7 @@ class Planck(Model):
         float
             mean opacity computed from the model
         """
-        return self._planck(ktable, nu, T_input).si
+        return self._planck(opacities, nu, T_input).si
 
     def _bb_nu(self, nu, T):
         first_term = const.h * nu ** 3 / const.c ** 2

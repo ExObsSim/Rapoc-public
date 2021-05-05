@@ -44,7 +44,7 @@ To summarise, the python dictionary must have the layout described in the :ref:`
         pressure grid in [:math:`Pa`]    list or np.array    p, P, pressure, pressure_grid
         temperature grid [:math:`K`]     list or np.array    t, T, temperature, temperature_grid
         wavenumber grid [:math:`1/cm`]   list or np.array    wn, wavenumber, wavenumbers, wavenumbers_grid, wavenumber_grid
-        ktable [:math:`m^2/kg`]          list or np.array    ktable
+        opacities [:math:`m^2/kg`]       list or np.array    opacities
         ==============================   =================   ==============================================================
 
 Every value in the dictionary can be assigned units by using the `units` :class:`astropy.units.Quantity`.
@@ -103,7 +103,7 @@ This is achieved by attaching the corresponding units.
 There are two estimation modes available in `RAPOC`:
 
 - `closest`: the code estimates the mean opacity for the closest pressure and temperature values found within the input data grid.
-- `linear` or `cubic`: the code estimates the mean opacity by performing an interpolation that makes use of the :func:`scipy.interpolate.griddata`.
+- `linear` or `loglinear`: the code estimates the mean opacity by performing an interpolation that makes use of the :func:`scipy.interpolate.griddata`.
 
 In the second case, `RAPOC` needs to first build a :func:`~rapoc.models.model.Model.map()` of the mean opacities
 in the input pressure and temperature data grid.
@@ -170,7 +170,80 @@ If instead multiple opacities have been calculated, then then the script should 
 Notwithstanding, to force the production of a :func:`~rapoc.models.model.Model.map_plot()` with a single value,
 the following should be used :code:`force_map=True`
 
+Include Rayleigh scattering
+===========================
+
+Initialising Rayleigh data
+----------------------------
+
+`RAPOC` can estimate the Rayleigh scattering absorption for a list of atoms, using the tables and equations
+in Chapter 10 of David R. Lide, ed., CRC Handbook of Chemistry and Physics, Internet Version 2005,
+`hbcponline <http://hbcponline.com/faces/contents/ContentsSearch.xhtml>`_, CRC Press, Boca Raton, FL, 2005.
+
+To compute the Rayleigh scattering mean opacities, the first step is to produce the Rayleigh data set.
+This can be done initialising the :class:`~rapoc.Rayleigh` class. This class is similar to a
+:class:`~rapoc.loaders.loader.FileLoader` class: it can be injected into a :class:`~rapoc.models.model.Model` as input data,
+and therefore used as any other input data to estimate the mean opacities.
+
+To initialise the :class:`~rapoc.Rayleigh` it is needed the atom and the wavenumber grid to use to sample the Rayleigh scattering.
+In the following example we estimate the scattering data for hydrogen in a simple wavenumber grid: 100000, 10000, 1000 cm-1
+
+    .. code-block:: python
+
+        from rapoc import Rayleigh
+        rayleigh = Rayleigh('H', wavenumber_grid=[100000, 10000, 1000])
+
+Another way to initialise the :class:`~rapoc.Rayleigh` is to use an already initialised :class:`~rapoc.models.model.Model`.
+This can be useful is the Rayleigh scattering is to be used along with other absorptions. Let's assume that a
+:class:`~rapoc.Planck` class has been initialised already.
+That model can be used to produce a Rayleigh scattering dataset sampled at the same wavenumbers grid.
+
+    .. code-block:: python
+
+        plan = Planck(input_data=input_file)
+        rayleigh = Rayleigh('H', model=plan)
+
+Once the wavenumber grid is produced, either using the `wavenumber_grid` or the `model` keyword, the class produces the
+opacities data using the :func:`~rapoc.Rayleigh.compute_opacities()`.
+
+Estimating Rayleigh mean opacities
+-----------------------------------
+
+The initialised :class:`~rapoc.models.Rayleigh` can be now used as input data for :class:`~rapoc.Rosseland` and
+:class:`~rapoc.Planck`
+
+    .. code-block:: python
+
+        ross = Rosseland(input_data=rayleigh)
+        plan = Planck(input_data=rayleigh)
+
+Because the Rayleigh scattering doesn't depend on temperature and pressure, is not sampled in a temperatures and
+pressures grid as the molecular opacities. Therefore, to estimate its mean opacities the pressure must not be indicated.
+The temperature, on the contrary, must be indicated because of the Rosseland and Planck equation involving a black body.
+For the same reason, the estimation mode is forced to `closest`, so should not be indicated by the user.
+Here is an example
+
+    .. code-block:: python
+
+        T = 1000.0 *u.K
+        wl = (1 * u.um, 10 * u.um)
+
+        r_estimate = ross.estimate(T_input=T, band=wl)
+
+        6.725572872420127e-08 m2 / kg
+
+    .. code-block:: python
+
+        p_estimate = plan.estimate(T_input=T, band=wl)
+
+        6.518714389415313e-09 m2 / kg
+
+
+Because, again, the Rayleigh scattering doesn't depend on temperature and pressure, the :func:`~rapoc.models.model.Model.map()`
+is disabled for this kind of data
+
 .. _GitHub: https://github.com/ExObsSim/rapoc-public
 .. _ExoMol: http://exomol.com
 .. _here: http://exomol.com/data/data-types/opacity/
 .. _water: http://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
+.. _hbcponline: http://hbcponline.com/faces/contents/ContentsSearch.xhtml

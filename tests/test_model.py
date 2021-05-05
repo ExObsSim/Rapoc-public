@@ -5,7 +5,7 @@ import numpy as np
 
 from input import exomol_file
 from rapoc.models import Model
-from rapoc.models.validation import validate_output
+from rapoc.models.utils.validation import validate_output
 
 data_dict = {'mol': 'H2O',
              'pressure': np.array([1.00000000e+00, 2.15443469e+00, 4.64158883e+00, 1.00000000e+01,
@@ -19,7 +19,7 @@ data_dict = {'mol': 'H2O',
                                       3000, 3200, 3400]),
              'wavenumber': np.array([100000, 1000])}
 ktab = np.ones((data_dict['pressure'].size, data_dict['temperature'].size, data_dict['wavenumber'].size,))
-data_dict['ktable'] = ktab
+data_dict['opacities'] = ktab
 
 
 class ModelTest(unittest.TestCase):
@@ -70,8 +70,8 @@ class ModelTest(unittest.TestCase):
         self.assertEqual(self.dict_model.wavelength_grid.unit, u.um)
 
     def test_ktable(self):
-        self.assertEqual(self.file_model.ktable.unit, u.m ** 2 / u.kg)
-        self.assertEqual(self.dict_model.ktable.unit, u.m ** 2 / u.kg)
+        self.assertEqual(self.file_model.opacities.unit, u.m ** 2 / u.kg)
+        self.assertEqual(self.dict_model.opacities.unit, u.m ** 2 / u.kg)
 
 
 class OutputValidationTest(unittest.TestCase):

@@ -22,9 +22,9 @@ class CiaHitranFileLoader(FileLoader):
         mol_mass = None
         temperature_grid = file_content.temperatureGrid * u.K
         wavenumber_grid = file_content.wavenumberGrid / u.cm
-        ktable = file_content._xsec_grid[np.newaxis, ...]
+        opacities = file_content._xsec_grid[np.newaxis, ...]
         pressure_grid = None
-        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable
+        return mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacities
 
     def _get_mol_mass(self, mol):
         from molmass import Formula
