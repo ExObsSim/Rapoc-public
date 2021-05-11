@@ -11,7 +11,7 @@ from rapoc.models import Planck
 class PlanckTest(unittest.TestCase):
     model = Planck(input_data=exomol_file)
 
-    def test_extract_ktable(self):
+    def test_extract_opacity(self):
         k_ext, _ = self.model.extract_opacities(P_input=1 * u.bar, T_input=1000 * u.K, band=(0.3 * u.um, 50 * u.um))
 
         idw = self.model._wl_range_parser((0.3 * u.um, 50 * u.um))

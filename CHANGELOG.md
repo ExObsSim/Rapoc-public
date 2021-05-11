@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.5] - 2021-05-11
+### Added
+- support for DACE opacities original data
+
 ## [1.0.4] - 2021-05-04
 ### Added
 - added Rayleigh scattering converter. This class computes the Rayleigh scattering for the indicated atom and can be used as input data for the RAPOC models.
@@ -20,5 +24,6 @@ First RAPOC release
 
 
 [Unreleased]: https://github.com/ExObsSim/Rapoc
+[1.0.5]: https://github.com/ExObsSim/Rapoc-public/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/ExObsSim/Rapoc-public/compare/v1.0.0...v1.0.4
 [1.0.0]: https://github.com/ExObsSim/Rapoc-public/releases/tag/v1.0.0

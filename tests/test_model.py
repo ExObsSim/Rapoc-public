@@ -69,7 +69,7 @@ class ModelTest(unittest.TestCase):
         self.assertEqual(self.dict_model.frequency_grid.unit, 1 / u.s)
         self.assertEqual(self.dict_model.wavelength_grid.unit, u.um)
 
-    def test_ktable(self):
+    def test_opacity(self):
         self.assertEqual(self.file_model.opacities.unit, u.m ** 2 / u.kg)
         self.assertEqual(self.dict_model.opacities.unit, u.m ** 2 / u.kg)
 

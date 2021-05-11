@@ -4,6 +4,7 @@ import astropy.constants as const
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 import rapoc.models
 from rapoc.models.utils.validation import validate_inputs, validate_output
@@ -166,8 +167,8 @@ class Model:
             indicates the estimation mode desired. If `closest` the output will be the opacity computed from the data at
             the nearest pressure on the data grid to the indicated one, and at the nearest temperature on the data grid
             to the indicated one. If {'linear', 'loglinear'} it's used the :func:`scipy.interpolate.griddata`
-            with the indicated `kind`. 
-            To interpolate a map of opacities over the data grid is computed first using :func:`~rapoc.models.model.Model.map`. 
+            with the indicated `kind`.
+            To interpolate a map of opacities over the data grid is computed first using :func:`~rapoc.models.model.Model.map`.
             Mode is `closest` by default.
         units: str or astropy.units, optional
             indicates the output units system.
@@ -246,7 +247,7 @@ class Model:
         If a single estimate is to be plotted, this method produces a plot of raw opacities vs wavelength
         from the opacities (in grey) and the mean opacity estimated.
         If multiple estimates are be plotted, it produces a 3D plot,  with the surface of mean opacity vs
-        temperature and pressure from the data grid (using :func:`~rapoc.models.model.Model.map_plot`) 
+        temperature and pressure from the data grid (using :func:`~rapoc.models.model.Model.map_plot`)
         and the interpolated data superimposed.
 
         Parameters
@@ -413,6 +414,10 @@ class Model:
             if 'TauREx.h5' in self.input_data:
                 from rapoc.loaders import ExoMolFileLoader
                 return ExoMolFileLoader(filename=self.input_data)
+            elif [f for f in os.listdir(self.input_data) if f.endswith('.bin')]:
+                from rapoc.loaders import DACEFileLoader
+                return DACEFileLoader(filename=self.input_data)
+
             else:
                 raise IOError('file extension not supported')
         elif isinstance(self.input_data, dict):

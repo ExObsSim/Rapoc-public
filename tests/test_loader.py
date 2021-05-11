@@ -3,13 +3,13 @@ import unittest
 import astropy.units as u
 import numpy as np
 
-from input import exomol_file
-from rapoc.loaders import ExoMolFileLoader
+from input import exomol_file, dace_file
+from rapoc.loaders import ExoMolFileLoader, DACEFileLoader
 
 
 class ExoMolLoaderTest(unittest.TestCase):
     loaded = ExoMolFileLoader(filename=exomol_file)
-    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, ktable, force_t = loaded.read_content()
+    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacity, force_t = loaded.read_content()
 
     def test_mol(self):
         self.assertEqual(self.mol, 'H2O')
@@ -40,8 +40,43 @@ class ExoMolLoaderTest(unittest.TestCase):
     def test_wavenumber_grid(self):
         self.assertEqual(self.wavenumber_grid.unit, 1 / u.cm)
 
-    def test_ktable(self):
-        self.assertEqual(self.ktable.unit, u.m ** 2 / u.kg)
+    def test_opacity(self):
+        self.assertEqual(self.opacity.unit, u.m ** 2 / u.kg)
+
+
+class DaceLoaderTest(unittest.TestCase):
+    loaded = DACEFileLoader(filename=dace_file)
+    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacity, force_t = loaded.read_content()
+
+    print(mol)
+    print(mol_mass)
+    print(pressure_grid)
+    print(temperature_grid)
+    print(wavenumber_grid)
+    print(opacity)
+
+    def test_mol_name(self):
+        self.assertEqual(self.mol,'H2O')
+
+    def test_mol_mass(self):
+        from molmass import Formula
+        f = Formula("H2O")
+        mol_mass = (f.mass * u.u / u.ct).to(u.g / u.ct)
+        self.assertEqual(self.mol_mass, mol_mass)
+
+    def test_pressure_grid(self):
+        self.assertEqual(self.pressure_grid.unit, u.Pa)
+
+    def test_temperature_grid(self):
+        self.assertEqual(self.temperature_grid.unit, u.K)
+
+    def test_wavenumber_grid(self):
+        self.assertEqual(self.wavenumber_grid.unit, 1 / u.cm)
+
+    def test_opacity(self):
+        self.assertEqual(self.opacity.unit, u.m ** 2 / u.kg)
+
+
 
 # class HitranLoaderTest(unittest.TestCase):
 #     loaded = CiaHitranFileLoader(input_data=hitran_file)
@@ -71,7 +106,7 @@ class ExoMolLoaderTest(unittest.TestCase):
 #         print(self.wavenumber_grid.shape)
 #         self.assertEqual(self.wavenumber_grid.unit, 1 / u.cm)
 #
-#     def test_ktable(self):
+#     def test_opacity(self):
 #         print(self.opacities)
 #         print(self.opacities.shape)
 #         self.assertEqual(self.opacities.unit, u.m ** 2 / u.kg)

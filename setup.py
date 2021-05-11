@@ -12,7 +12,8 @@ install_requires = ['astropy',
                     'numpy',
                     'scipy',
                     'h5py',
-                    'molmass'
+                    'molmass',
+                    'tqdm'
                     ]
 
 classifiers = [

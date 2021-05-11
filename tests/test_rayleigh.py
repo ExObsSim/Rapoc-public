@@ -36,7 +36,7 @@ class RayleighTest(unittest.TestCase):
 
         np.testing.assert_equal(data_dict['wavenumber'], ray_model.wavenumber_grid.value)
 
-    def test_compute_ktable(self):
+    def test_compute_opacity(self):
         model = Rayleigh(atom='Na', wavenumber_grid=[100000/u.cm])
         np.testing.assert_almost_equal(19.76, model.opacities.cgs.value, decimal=0)
 
@@ -59,7 +59,7 @@ class RayleighTest(unittest.TestCase):
         print(est)
 
 
-    def test_extract_ktable(self):
+    def test_extract_opacity(self):
         from input import exomol_file
         from rapoc.models import Rosseland, Planck
         input_data = Model(input_data=exomol_file)
