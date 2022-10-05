@@ -142,22 +142,4 @@ class DACEFileLoader(FileLoader):
 def _read_bin_single(filename):
     """ Read a binary opacity world file.
     """
-
-    # Open file
-    file = open(filename, mode='rb')
-    # Read content
-    cont = file.read()
-    file.close()
-
-    # The number of bytes per entry is 4
-    # Get the number of datapoints
-    points = int(len(cont) / 4)
-    # Create array of the appropriate length
-    x = np.ones(points)
-
-    # Read the binary data into the array
-    for i in range(int(points)):
-        test = struct.unpack('f', cont[i * 4:(i + 1) * 4])
-        x[i] = test[0]
-
-    return x
+    return np.fromfile(filename, dtype=np.float32)
