@@ -26,6 +26,14 @@ Once the opacities have been downloaded from ExoMol_,
 For practice, we use the TauRex formatted opacities for water_.
 However, if other molecules are required then they can be downloaded here_.
 
+Using Dace
+---------------------
+
+This is another straightforward approach.
+The opacities can be downloaded from Dace_ as binary files.
+`RAPOC` will load them using the :class:`~rapoc.loaders.DACEFileLoader` by pointing to the directory
+where the binary files (*.bin) are stored.
+
 
 Python dictionary (harder)
 --------------------------
@@ -256,4 +264,5 @@ is disabled for this kind of data
 .. _ExoMol: http://exomol.com
 .. _here: http://exomol.com/data/data-types/opacity/
 .. _water: http://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
+.. _Dace: https://dace.unige.ch/opacityDatabase/
 .. _hbcponline: http://hbcponline.com/faces/contents/ContentsSearch.xhtml
