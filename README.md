@@ -66,13 +66,14 @@ For example, in order to estimate the mean opacities at a temperature (T) of 100
 To run the code you need measured data. The supported file formats are:
 
 - ExoMol opacities (downloadable [here](http://exomol.com/data/data-types/opacity)) with the `TauREx.h5` format.
+- Dace opacities (downloadable [here](https://dace.unige.ch/opacityDatabase/)) with the binary format.
 
 ## Documentation
 The full documentation is available [here](https://rapoc-public.readthedocs.io/en/latest/) 
 
 Alternatively, `RAPOC` accepts user-defined documentation by using `sphinx`. To install it run
     
-    pip install sphinx sphinx_rtd_theme
+    pip install sphinx sphinx_rtd_theme nbsphinx
     
 From the `Rapoc/docs` folder running
     
