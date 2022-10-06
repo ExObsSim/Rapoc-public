@@ -67,6 +67,16 @@ After this, two classes can be produced, one for Rosseland and the other for Pla
         ross = Rosseland(input_data=input_file)
         plan = Planck(input_data=input_file)
 
+Identifying the molecule
+++++++++++++++++++++++++++
+Normally, the molecule name is automatically extracted from the input data.
+However, if the molecule name is not present in the input data, it can be manually set using the `molecule` keyword argument:
+
+    .. code-block:: python
+
+        ross = Rosseland(input_data=input_file, molecule='H2O')
+        plan = Planck(input_data=input_file, molecule='H2O')
+
 Calculating the mean opacities
 ------------------------------
 

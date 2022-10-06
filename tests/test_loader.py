@@ -43,6 +43,12 @@ class ExoMolLoaderTest(unittest.TestCase):
     def test_opacity(self):
         self.assertEqual(self.opacity.unit, u.m ** 2 / u.kg)
 
+class ExoMolLoaderMolNameTest(unittest.TestCase):
+    loaded = ExoMolFileLoader(filename=exomol_file, molecule='H3O')
+    mol, mol_mass, pressure_grid, temperature_grid, wavenumber_grid, opacity, force_t = loaded.read_content()
+
+    def test_mol(self):
+        self.assertEqual(self.mol, 'H3O')
 
 class DaceLoaderTest(unittest.TestCase):
     loaded = DACEFileLoader(filename=dace_file)

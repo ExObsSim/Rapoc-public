@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.8] - 2022-10-6
+### Added
+- forced molecule name in Loader with *molecule* keyword
+### Changed
+- increased loading performance for Dace data
+### Fixed
+- ascii conversion for strings in ExoMol data
+
 ## [1.0.5] - 2021-05-11
 ### Added
 - support for DACE opacities original data
@@ -24,6 +32,7 @@ First RAPOC release
 
 
 [Unreleased]: https://github.com/ExObsSim/Rapoc
+[1.0.8]: https://github.com/ExObsSim/Rapoc-public/compare/v1.0.5...v1.0.8
 [1.0.5]: https://github.com/ExObsSim/Rapoc-public/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/ExObsSim/Rapoc-public/compare/v1.0.0...v1.0.4
 [1.0.0]: https://github.com/ExObsSim/Rapoc-public/releases/tag/v1.0.0

@@ -7,18 +7,21 @@ class FileLoader:
 
     '''
 
-    def __init__(self, filename):
+    def __init__(self, filename, molecule=None):
         '''
         Parameters
         ----------
         filename: str
             data file name
+        molecule: str
+            forced molecule name
         '''
         self.filename = filename
+        self._forced_molname = molecule
 
     def read_content(self):
         '''
-        Reads the file content and returns the needed valued for the opacity models.
+        Reads the file content and returns the needed values for the opacity models.
 
         Returns
         -------
@@ -36,7 +39,10 @@ class FileLoader:
             data opacities grid in si units
         '''
         opened_file = self._open()
-        mol = self._read_molecule_name(opened_file)
+        if self._forced_molname is not None:
+            mol = self._forced_molname
+        else:
+            mol = self._read_molecule_name(opened_file)
         mol_mass = self._get_mol_mass(mol)
         pressure_grid = self._read_pressure_grid(opened_file)
         temperature_grid = self._read_temperature_grid(opened_file)

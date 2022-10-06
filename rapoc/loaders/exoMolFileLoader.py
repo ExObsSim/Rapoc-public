@@ -32,7 +32,7 @@ class ExoMolFileLoader(FileLoader):
         opened_file.close()
 
     def _read_molecule_name(self, opened_file):
-        return opened_file['mol_name'][()][0]
+        return opened_file['mol_name'][()][0].decode('ascii')
 
     def _get_mol_mass(self, mol):
         from molmass import Formula
