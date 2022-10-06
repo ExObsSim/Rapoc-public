@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: Mugnai
-    given-names: Lorenzo
+    given-names: Lorenzo V.
     orcid: https://orcid.org/0000-0002-9007-9802
   - family-names: Modirrousta-Galian,
     given-names: Darius
