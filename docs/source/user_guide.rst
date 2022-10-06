@@ -78,7 +78,7 @@ After this, two classes can be produced, one for Rosseland and the other for Pla
 Identifying the molecule
 ++++++++++++++++++++++++++
 Normally, the molecule name is automatically extracted from the input data.
-However, if the molecule name is not present in the input data, it can be manually set using the `molecule` keyword argument:
+However, if the molecule name is not present in the input data or if any errors occur, it can be manually set using the `molecule` keyword argument:
 
     .. code-block:: python
 
