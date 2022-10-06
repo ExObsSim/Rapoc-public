@@ -32,7 +32,7 @@ Using Dace
 This is another straightforward approach.
 The opacities can be downloaded from Dace_ as binary files.
 `RAPOC` will load them using the :class:`~rapoc.loaders.DACEFileLoader` by pointing to the directory
-where the binary files (*.bin) are stored.
+where the binary files (.bin) are stored.
 
 
 Python dictionary (harder)
