@@ -3,6 +3,7 @@
 [![Downloads](https://pepy.tech/badge/rapoc)](https://pepy.tech/project/rapoc)
 [![Documentation Status](https://readthedocs.org/projects/rapoc-public/badge/?version=latest)](https://rapoc-public.readthedocs.io/en/latest/?badge=latest)
 ![GitHub](https://img.shields.io/github/license/ExObsSim/Rapoc-public)
+[![ASCL.net](https://img.shields.io/badge/ascl-2209.016-blue.svg?colorB=262255)](https://ascl.net/2209.016)
 
 # RAPOC: Rosseland And Planck Opacity Converter
 
